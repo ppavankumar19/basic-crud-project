@@ -1,0 +1,6 @@
+# Backend Dependencies
+# Install with: pip install -r requirements.txt
+
+flask==3.0.3          # Web framework - handles routing, requests, sessions
+flask-cors==4.0.1     # Cross-Origin Resource Sharing - lets frontend call API from different origin
+werkzeug==3.0.3       # Utilities used by Flask: password hashing (generate_password_hash, check_password_hash)
