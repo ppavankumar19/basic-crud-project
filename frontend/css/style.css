@@ -1,0 +1,744 @@
+/*
+  style.css  —  All Styles for the ShopManager App
+  ==================================================
+
+  WHAT IS CSS?
+  ------------
+  CSS (Cascading Style Sheets) controls how the HTML LOOKS.
+  HTML defines WHAT is on the page (elements, structure).
+  CSS defines HOW it looks (colors, sizes, spacing, layout).
+
+  HOW CSS CONNECTS TO HTML:
+  -------------------------
+  In the HTML file, we link this file with:
+    <link rel="stylesheet" href="css/style.css" />
+
+  Then in HTML elements we add class attributes:
+    <div class="auth-container">
+
+  CSS then finds all elements with that class and styles them:
+    .auth-container { background: white; padding: 40px; }
+
+  HOW CSS CLASSES WORK:
+  ----------------------
+  .classname { property: value; }
+  The dot (.) means "this is a class selector"
+
+  HTML elements can have multiple classes:
+    <button class="btn btn-primary btn-full">Sign In</button>
+  All three classes' styles are applied together.
+
+  HOW JAVASCRIPT USES CSS:
+  -------------------------
+  JavaScript can add/remove CSS classes to change the appearance:
+    element.classList.add("active")    → shows the modal
+    element.classList.remove("active") → hides the modal
+    element.classList.add("hidden")    → hides an element (display: none)
+
+  This is how our modals, tabs, and alerts work.
+
+  SECTIONS IN THIS FILE:
+  ----------------------
+    1. CSS Reset & Variables
+    2. Base Styles
+    3. Auth Page (Login / Register)
+    4. Dashboard Layout
+    5. Navbar
+    6. Stats Bar
+    7. Toolbar (Search & Filter)
+    8. Products Table
+    9. Modal
+   10. Buttons
+   11. Forms
+   12. Alerts
+   13. Utilities / Responsive Design
+*/
+
+/* ============================================================
+   1. CSS RESET & CUSTOM PROPERTIES (Variables)
+   ============================================================
+
+   CSS RESET:
+   ----------
+   Different browsers have slightly different default styles.
+   (Chrome adds different margins than Firefox, for example)
+   We "reset" these by setting everything to 0,
+   so our styles look consistent in all browsers.
+
+   box-sizing: border-box → makes element sizing predictable.
+   By default, padding adds to an element's total width.
+   border-box includes padding in the width calculation.
+   Example: a 200px wide div with 20px padding is still 200px total.
+
+   CSS VARIABLES (Custom Properties):
+   -----------------------------------
+   :root {} is the highest-level element (the whole page).
+   Variables defined here are available everywhere in this file.
+
+   Syntax: --variable-name: value;
+   Usage:  color: var(--primary);
+
+   Why use variables?
+   To change the app's color theme, just change ONE value here.
+   Instead of finding and changing the color in 50 different places.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary:       #4f46e5;   /* Indigo - main brand color */
+  --primary-dark:  #4338ca;
+  --primary-light: #eef2ff;
+  --danger:        #ef4444;   /* Red - delete actions */
+  --danger-dark:   #dc2626;
+  --success:       #22c55e;   /* Green - success messages */
+  --warning:       #f59e0b;   /* Amber - low stock */
+  --gray-50:       #f9fafb;
+  --gray-100:      #f3f4f6;
+  --gray-200:      #e5e7eb;
+  --gray-400:      #9ca3af;
+  --gray-600:      #4b5563;
+  --gray-700:      #374151;
+  --gray-900:      #111827;
+  --white:         #ffffff;
+  --shadow-sm:     0 1px 2px rgba(0,0,0,0.05);
+  --shadow:        0 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-lg:     0 10px 25px -5px rgba(0,0,0,0.15);
+  --radius:        8px;
+  --radius-lg:     12px;
+  --transition:    0.2s ease;
+}
+
+/* ============================================================
+   2. BASE STYLES
+   ============================================================ */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-700);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   3. AUTH PAGE (Login / Register)
+   ============================================================ */
+.auth-page {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-container {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.5px;
+}
+
+.auth-subtitle {
+  color: var(--gray-400);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* Tab switcher */
+.auth-tabs {
+  display: flex;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.tab-btn.active {
+  background: var(--white);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+
+.auth-form h2 {
+  font-size: 1.3rem;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.form-desc {
+  color: var(--gray-400);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.auth-switch a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-switch a:hover { text-decoration: underline; }
+
+.demo-hint {
+  margin-top: 20px;
+  padding: 12px;
+  background: var(--primary-light);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  color: var(--primary-dark);
+  text-align: center;
+}
+
+/* ============================================================
+   4. DASHBOARD LAYOUT
+   ============================================================ */
+.dashboard-page {
+  background: var(--gray-50);
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.page-subtitle {
+  color: var(--gray-400);
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   5. NAVBAR
+   ============================================================ */
+.navbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.navbar-user {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+/* ============================================================
+   6. STATS BAR
+   ============================================================ */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--gray-400);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   7. TOOLBAR (Search & Filter)
+   ============================================================ */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-box input {
+  width: 100%;
+}
+
+.filter-box select {
+  min-width: 160px;
+}
+
+/* ============================================================
+   8. PRODUCTS TABLE
+   ============================================================ */
+.table-container {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.products-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.products-table th {
+  background: var(--gray-50);
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--gray-600);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.products-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+  vertical-align: middle;
+}
+
+.products-table tbody tr:hover {
+  background: var(--gray-50);
+}
+
+.products-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Product name cell */
+.product-name {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.product-desc {
+  font-size: 0.78rem;
+  color: var(--gray-400);
+  margin-top: 2px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Category badge */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* Price cell */
+.price {
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+/* Stock status badges */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-in-stock  { background: #dcfce7; color: #166534; }
+.status-low-stock { background: #fef9c3; color: #854d0e; }
+.status-no-stock  { background: #fee2e2; color: #991b1b; }
+
+/* Action buttons in table row */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Empty and loading states */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--gray-400);
+}
+
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--gray-400);
+}
+
+/* ============================================================
+   9. MODAL
+   ============================================================ */
+
+/* Dark overlay behind the modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  /* Hidden by default - JS adds/removes the 'active' class */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 580px;
+  animation: modalIn 0.25s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-sm {
+  max-width: 400px;
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--gray-400);
+  line-height: 1;
+  padding: 0 4px;
+  transition: color var(--transition);
+}
+
+.modal-close:hover { color: var(--gray-700); }
+
+.modal-body   { padding: 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ============================================================
+   10. BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Primary (Indigo) */
+.btn-primary {
+  background: var(--primary);
+  color: var(--white);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+/* Secondary (Gray) */
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border-color: var(--gray-200);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--gray-200);
+}
+
+/* Outline */
+.btn-outline {
+  background: transparent;
+  color: var(--white);
+  border-color: rgba(255,255,255,0.5);
+}
+.btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+/* Danger (Red) */
+.btn-danger {
+  background: var(--danger);
+  color: var(--white);
+}
+.btn-danger:hover:not(:disabled) { background: var(--danger-dark); }
+
+/* Edit (small teal) */
+.btn-edit {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+.btn-edit:hover { background: #bae6fd; }
+
+/* Delete (small red) */
+.btn-delete {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+.btn-delete:hover { background: #fecaca; }
+
+/* Full width */
+.btn-full { width: 100%; }
+
+/* Small */
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}
+
+/* ============================================================
+   11. FORMS
+   ============================================================ */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+
+.required { color: var(--danger); }
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  color: var(--gray-900);
+  background: var(--white);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+  font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+textarea { resize: vertical; }
+
+/* ============================================================
+   12. ALERTS
+   ============================================================ */
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.alert-success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* Floating global alert (bottom right) */
+.global-alert {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 2000;
+  animation: slideInRight 0.3s ease;
+  max-width: 320px;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ============================================================
+   13. UTILITIES
+   ============================================================ */
+.hidden    { display: none !important; }
+.text-muted { color: var(--gray-400); font-size: 0.85rem; margin-top: 6px; }
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .stats-bar    { grid-template-columns: 1fr; }
+  .form-row     { grid-template-columns: 1fr; }
+  .page-header  { flex-direction: column; gap: 12px; }
+  .toolbar      { flex-direction: column; }
+  .auth-container { padding: 24px 20px; }
+  .products-table { font-size: 0.8rem; }
+  .products-table th,
+  .products-table td { padding: 10px 12px; }
+}
