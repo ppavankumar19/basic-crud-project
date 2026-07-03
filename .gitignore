@@ -1,0 +1,21 @@
+# Python virtual environment — don't commit this (large, machine-specific)
+backend/venv/
+
+# SQLite database file — don't commit (contains user data, auto-created on first run)
+backend/ecommerce.db
+
+# Python cache files — auto-generated, not needed
+__pycache__/
+*.pyc
+*.pyo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Claude project memory
+.claude/
