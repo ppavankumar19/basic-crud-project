@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<!--
+  =====================================================================
+  index.html  —  Login / Register Page
+  =====================================================================
+
+  WHAT IS THIS FILE?
+  ------------------
+  This is the FRONTEND — the page the user sees in the browser.
+  It is plain HTML (structure), CSS (styling), and JavaScript (behavior).
+
+  This page has TWO forms:
+    1. Login form    → lets existing users sign in
+    2. Register form → lets new users create an account
+
+  HOW DOES THIS PAGE TALK TO THE BACKEND?
+  ----------------------------------------
+  When the user clicks "Sign In" or "Create Account", the JavaScript
+  file (auth.js) collects the form data and sends it to the Flask
+  backend using fetch(). The backend checks the database and sends
+  back a response. JavaScript reads the response and either:
+    - Redirects the user to the dashboard (success)
+    - Shows an error message (failure)
+
+  The HTML page itself does NOT talk to the backend.
+  Only JavaScript does, using the fetch() function.
+
+  FILE STRUCTURE:
+  ---------------
+  index.html    → this file (the page structure / HTML)
+  css/style.css → the styles (colors, fonts, layout)
+  js/auth.js    → the logic (login/register functions)
+
+  HOW HTML, CSS, and JS WORK TOGETHER:
+  --------------------------------------
+  HTML = the skeleton / bones of the page
+         (defines WHAT is on the page: forms, buttons, text)
+
+  CSS  = the skin / clothing of the page
+         (defines HOW it looks: colors, sizes, spacing)
+
+  JS   = the muscles / behavior of the page
+         (defines WHAT IT DOES: handle clicks, send data, show errors)
+-->
+<html lang="en">
+<head>
+  <!-- charset tells the browser to use UTF-8 encoding (supports all languages) -->
+  <meta charset="UTF-8" />
+
+  <!-- viewport tells mobile browsers to use the actual screen width, not a zoomed-out view -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- The title that appears in the browser tab -->
+  <title>ShopManager - Login</title>
+
+  <!-- Link to our CSS file — this is how we apply styles to this page -->
+  <!-- href="css/style.css" means: look for style.css inside the css/ folder -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<!--
+  class="auth-page" applies CSS styles defined in style.css.
+  The .auth-page class gives this page a purple gradient background.
+-->
+<body class="auth-page">
+
+  <!-- The white card in the center of the page -->
+  <div class="auth-container">
+
+    <!-- ======================================================
+         HEADER: Logo and subtitle
+         ====================================================== -->
+    <div class="auth-header">
+      <div class="logo">ShopManager</div>
+      <p class="auth-subtitle">Simple CRUD App — Learn by Building</p>
+    </div>
+
+    <!-- ======================================================
+         TAB SWITCHER: Login | Register buttons at the top
+         ======================================================
+         These are just regular HTML buttons.
+         onclick="switchTab('login')" calls the switchTab() function
+         in auth.js when the button is clicked.
+         The function shows/hides the correct form using CSS classes.
+    -->
+    <div class="auth-tabs">
+      <button class="tab-btn active" id="loginTab"    onclick="switchTab('login')">Login</button>
+      <button class="tab-btn"        id="registerTab" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- ======================================================
+         LOGIN FORM
+         ======================================================
+         onsubmit="handleLogin(event)" means:
+           when this form is submitted (Enter key or button click),
+           call the handleLogin() function in auth.js.
+           We pass "event" so the function can stop the default
+           browser behavior (page refresh) using event.preventDefault().
+    -->
+    <div class="auth-form" id="loginForm">
+      <h2>Welcome back</h2>
+      <p class="form-desc">Sign in to manage your products</p>
+
+      <form onsubmit="handleLogin(event)">
+
+        <!-- Email input field -->
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <!--
+            type="email"  → browser validates the format (must have @)
+            id="loginEmail" → auth.js finds this element with:
+                              document.getElementById("loginEmail").value
+            required      → browser will not submit the form if this is empty
+          -->
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="john@example.com"
+            required
+          />
+        </div>
+
+        <!-- Password input field -->
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <!--
+            type="password" → hides the typed characters (shows dots)
+          -->
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Enter your password"
+            required
+          />
+        </div>
+
+        <!--
+          Error message box.
+          Hidden by default (style="display:none;").
+          auth.js shows it and fills in text when login fails.
+          Example: "Invalid email or password"
+        -->
+        <div class="alert alert-error" id="loginError" style="display:none;"></div>
+
+        <!-- Submit button — clicking this submits the form and triggers handleLogin() -->
+        <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+          Sign In
+        </button>
+
+      </form>
+
+      <!-- Link to switch to the Register tab -->
+      <p class="auth-switch">
+        Don't have an account?
+        <a href="#" onclick="switchTab('register')">Create one</a>
+      </p>
+    </div><!-- /.auth-form (login) -->
+
+
+    <!-- ======================================================
+         REGISTER FORM
+         ======================================================
+         Hidden by default (class="auth-form hidden").
+         switchTab('register') removes the "hidden" class to show it.
+    -->
+    <div class="auth-form hidden" id="registerForm">
+      <h2>Create Account</h2>
+      <p class="form-desc">Start managing your inventory today</p>
+
+      <form onsubmit="handleRegister(event)">
+
+        <!-- Username input -->
+        <div class="form-group">
+          <label for="regUsername">Username</label>
+          <input
+            type="text"
+            id="regUsername"
+            placeholder="e.g. john_doe"
+            required
+          />
+        </div>
+
+        <!-- Email input -->
+        <div class="form-group">
+          <label for="regEmail">Email Address</label>
+          <input
+            type="email"
+            id="regEmail"
+            placeholder="john@example.com"
+            required
+          />
+        </div>
+
+        <!-- Password input -->
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <!--
+            minlength="6" → browser won't submit if password is shorter than 6 chars
+            auth.js also checks this, but having both is good practice
+          -->
+          <input
+            type="password"
+            id="regPassword"
+            placeholder="Minimum 6 characters"
+            minlength="6"
+            required
+          />
+        </div>
+
+        <!-- Error message box (shown when registration fails) -->
+        <div class="alert alert-error"   id="registerError"   style="display:none;"></div>
+        <!-- Success message box (shown when registration succeeds) -->
+        <div class="alert alert-success" id="registerSuccess" style="display:none;"></div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+          Create Account
+        </button>
+
+      </form>
+
+      <p class="auth-switch">
+        Already have an account?
+        <a href="#" onclick="switchTab('login')">Sign in</a>
+      </p>
+    </div><!-- /.auth-form (register) -->
+
+    <!-- ======================================================
+         DEMO HINT — Tip for first-time users
+         ====================================================== -->
+    <div class="demo-hint">
+      <strong>First time here?</strong>
+      Click "Register" to create an account, then login to try CRUD.
+    </div>
+
+  </div><!-- /.auth-container -->
+
+  <!--
+    Load the JavaScript file LAST (at the bottom of the page).
+
+    WHY AT THE BOTTOM?
+    When the browser reads HTML top-to-bottom, it runs any
+    <script> tags it encounters immediately. If auth.js were in
+    the <head>, it would run before the HTML elements (like
+    #loginEmail) exist — and document.getElementById("loginEmail")
+    would return null, causing errors.
+
+    Placing the script at the bottom ensures all HTML elements
+    are created before auth.js tries to use them.
+
+    Alternatively, we use window.addEventListener("DOMContentLoaded", ...)
+    in auth.js to wait for the page to fully load.
+  -->
+  <script src="js/auth.js"></script>
+
+</body>
+</html>
