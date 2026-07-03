@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<!--
+  =====================================================================
+  dashboard.html  —  Product Management Dashboard (Main CRUD Page)
+  =====================================================================
+
+  WHAT IS THIS PAGE?
+  ------------------
+  This is the main page of the app — where users manage their products.
+  It is the "R" (Read) in CRUD — the page that SHOWS all products.
+  The other CRUD operations (Create, Update, Delete) happen via
+  popup modals (popup windows) without leaving this page.
+
+  CRUD OPERATIONS ON THIS PAGE:
+  --------------------------------
+  CREATE → Click "+ Add Product" button → fill form → click Save
+           JavaScript sends: POST /api/products
+
+  READ   → Products are loaded automatically when the page opens
+           JavaScript sends: GET /api/products
+           The table is built from the server's JSON response.
+
+  UPDATE → Click "Edit" on any row → form opens pre-filled → Save
+           JavaScript sends: PUT /api/products/:id
+
+  DELETE → Click "Delete" on any row → confirmation → confirm
+           JavaScript sends: DELETE /api/products/:id
+
+  HOW THE TABLE GETS POPULATED:
+  --------------------------------
+  The table structure (columns/headers) is written in this HTML file.
+  But the table ROWS (actual product data) are generated dynamically
+  by products.js using the data fetched from the Flask backend.
+
+  The table body has id="productsTableBody" — products.js finds this
+  element and fills it with <tr> elements (one per product).
+
+  HOW MODALS WORK:
+  ----------------
+  A modal is a popup window. It's always present in the HTML but
+  hidden by default using CSS (opacity: 0, pointer-events: none).
+  When the user clicks a button, products.js adds the "active"
+  CSS class to the modal, which makes it visible.
+  Clicking Close or Cancel removes the "active" class → hidden again.
+
+  PROTECTED PAGE:
+  ---------------
+  This page is protected — only logged-in users can see it.
+  Flask checks this at the server level (/dashboard route in app.py).
+  JavaScript also checks (checkAuth() in products.js).
+  If not logged in, both will redirect to the login page.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopManager - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="dashboard-page">
+
+  <!-- ============================================================
+       NAVBAR — Top navigation bar
+       ============================================================
+       The navbar stays at the top of the page (position: sticky in CSS).
+       "Hello, ..." shows the logged-in user's name.
+       products.js fills #navUsername after fetching it from the server.
+  -->
+  <nav class="navbar">
+    <div class="navbar-brand">ShopManager</div>
+    <div class="navbar-right">
+      <!--
+        #navUsername is filled by products.js when the page loads:
+        document.getElementById("navUsername").textContent = data.user.username;
+      -->
+      <span class="navbar-user">Hello, <strong id="navUsername">...</strong></span>
+
+      <!--
+        Logout button — calls handleLogout() in products.js.
+        handleLogout() sends POST /api/auth/logout to Flask,
+        which clears the session, then redirects to the login page.
+      -->
+      <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       MAIN CONTENT AREA
+       ============================================================ -->
+  <main class="main-content">
+
+    <!-- Page header with title and "Add Product" button -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Product Inventory</h1>
+        <p class="page-subtitle">Add, view, edit, and delete your products</p>
+      </div>
+      <!--
+        "+ Add Product" button — opens the add/edit modal in ADD mode.
+        openAddModal() clears the form and opens the popup.
+      -->
+      <button class="btn btn-primary" onclick="openAddModal()">
+        + Add Product
+      </button>
+    </div>
+
+    <!-- ============================================================
+         STATS BAR — Summary numbers at a glance
+         ============================================================
+         These 3 values are calculated by products.js after loading:
+           - Total products (count of rows returned by the API)
+           - Total categories (unique category values)
+           - Total inventory value (sum of price × quantity for each product)
+    -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-value" id="totalProducts">0</div>
+        <div class="stat-label">Total Products</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalCategories">0</div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalValue">$0</div>
+        <div class="stat-label">Total Inventory Value</div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TOOLBAR — Search box and category filter
+         ============================================================
+         These controls filter what products are shown in the table.
+         When the user types or selects a category, products.js calls
+         loadProducts() which adds query parameters to the API URL:
+           GET /api/products?search=iPhone&category=Electronics
+         Flask filters the database results and returns only matches.
+    -->
+    <div class="toolbar">
+      <div class="search-box">
+        <!--
+          oninput="debounceSearch()" fires on every keystroke.
+          debounceSearch() waits 400ms after the last keystroke
+          before sending the search request to avoid too many requests.
+        -->
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search products by name..."
+          oninput="debounceSearch()"
+        />
+      </div>
+      <div class="filter-box">
+        <!--
+          onchange="loadProducts()" fires immediately when the user
+          selects a different category.
+          The <option> elements below this are added dynamically
+          by loadCategories() in products.js.
+        -->
+        <select id="categoryFilter" onchange="loadProducts()">
+          <option value="">All Categories</option>
+          <!-- Dynamic options are added here by products.js -->
+        </select>
+      </div>
+      <!-- Clears both search and category filter, shows all products -->
+      <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <!-- ============================================================
+         PRODUCTS TABLE
+         ============================================================
+         The table header (column names) is written here in HTML.
+         The table body rows are generated dynamically by products.js.
+
+         HOW THE TABLE IS BUILT BY JS:
+           For each product in the API response array:
+             1. Create a <tr> element
+             2. Fill it with <td> cells using the product data
+             3. Add Edit and Delete buttons to the last cell
+             4. Append the <tr> to #productsTableBody
+    -->
+    <div class="table-container">
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Added On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productsTableBody">
+          <!--
+            THIS IS EMPTY ON PURPOSE.
+            products.js fills this with rows after fetching data from the API.
+            Each product becomes one <tr> row inside this <tbody>.
+          -->
+        </tbody>
+      </table>
+
+      <!--
+        Empty state — shown when there are no products to display.
+        Hidden by default (style="display:none;").
+        products.js shows this when the API returns an empty array.
+      -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">&#128230;</div>
+        <p>No products found. Add your first product!</p>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Product</button>
+      </div>
+
+      <!--
+        Loading spinner — shown while waiting for the API response.
+        products.js shows this before the fetch() and hides it after.
+      -->
+      <div class="loading" id="loadingState" style="display:none;">
+        Loading products...
+      </div>
+    </div>
+
+    <!--
+      Global floating alert — appears at the bottom-right corner.
+      Used for success and error notifications:
+        "Product added successfully!"
+        "Product deleted successfully!"
+      Auto-disappears after 3 seconds (controlled by products.js).
+    -->
+    <div class="global-alert" id="globalAlert" style="display:none;"></div>
+
+  </main><!-- /.main-content -->
+
+
+  <!-- ============================================================
+       ADD / EDIT PRODUCT MODAL (Popup Window)
+       ============================================================
+       This ONE modal handles BOTH adding AND editing products.
+       The difference is controlled by the hidden input #editProductId:
+
+         #editProductId is EMPTY  → ADD mode  → form shows blank
+         #editProductId has value → EDIT mode → form is pre-filled
+
+       When the user clicks:
+         "+ Add Product" → openAddModal() clears form, opens modal
+         "Edit" on a row → openEditModal(id) fetches data, fills form, opens modal
+
+       When the form is submitted → handleProductSubmit() is called.
+       It checks #editProductId to decide: POST (create) or PUT (update).
+
+       CLOSING THE MODAL:
+         - "X" button → closeModal()
+         - "Cancel" button → closeModal()
+         - Click outside the white box → closeModalOnOverlay()
+         All three remove the "active" CSS class, hiding the modal.
+  -->
+  <div class="modal-overlay" id="productModal" onclick="closeModalOnOverlay(event)">
+    <div class="modal">
+
+      <div class="modal-header">
+        <!--
+          Modal title changes based on mode:
+            Add mode:  "Add New Product"
+            Edit mode: "Edit Product"
+          products.js sets this: document.getElementById("modalTitle").textContent = "..."
+        -->
+        <h2 class="modal-title" id="modalTitle">Add Product</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+
+      <!--
+        onsubmit="handleProductSubmit(event)" calls the function in products.js
+        when the user clicks "Save Product" or presses Enter in a field.
+      -->
+      <form id="productForm" onsubmit="handleProductSubmit(event)">
+
+        <!--
+          HIDDEN INPUT — stores the product ID when editing.
+          The user cannot see this field, but products.js can read it.
+          Empty value  → we are adding a new product (POST)
+          Has a value  → we are editing this product's ID (PUT)
+        -->
+        <input type="hidden" id="editProductId" value="" />
+
+        <div class="modal-body">
+
+          <!-- Row 1: Product Name and Category side by side -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productName">
+                Product Name <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="productName"
+                placeholder="e.g. iPhone 15 Pro"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="productCategory">Category</label>
+              <!--
+                Fixed list of categories.
+                The user picks one from this dropdown.
+                The value is sent to the backend as product.category.
+              -->
+              <select id="productCategory">
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Footwear">Footwear</option>
+                <option value="Books">Books</option>
+                <option value="Home &amp; Kitchen">Home &amp; Kitchen</option>
+                <option value="Sports">Sports</option>
+                <option value="Beauty">Beauty</option>
+                <option value="Toys">Toys</option>
+                <option value="Grocery">Grocery</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Description — optional text area -->
+          <div class="form-group">
+            <label for="productDescription">Description (optional)</label>
+            <textarea
+              id="productDescription"
+              rows="3"
+              placeholder="Brief product description..."
+            ></textarea>
+          </div>
+
+          <!-- Row 2: Price and Quantity side by side -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productPrice">
+                Price (USD) <span class="required">*</span>
+              </label>
+              <!--
+                type="number"  → only allows numeric input
+                step="0.01"    → allows decimal values like 19.99
+                min="0"        → cannot be negative
+              -->
+              <input
+                type="number"
+                id="productPrice"
+                step="0.01"
+                min="0"
+                placeholder="e.g. 999.99"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="productQuantity">Stock Quantity</label>
+              <input
+                type="number"
+                id="productQuantity"
+                min="0"
+                placeholder="e.g. 50"
+                value="0"
+              />
+            </div>
+          </div>
+
+          <!--
+            Error message shown inside the form (below the inputs).
+            products.js shows this when validation fails or the server
+            returns an error.
+          -->
+          <div class="alert alert-error" id="formError" style="display:none;"></div>
+
+        </div><!-- /.modal-body -->
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">
+            Cancel
+          </button>
+          <!--
+            type="submit" → clicking this submits the form
+            and triggers onsubmit="handleProductSubmit(event)"
+          -->
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            Save Product
+          </button>
+        </div>
+
+      </form>
+    </div><!-- /.modal -->
+  </div><!-- /.modal-overlay -->
+
+
+  <!-- ============================================================
+       DELETE CONFIRMATION MODAL
+       ============================================================
+       Appears when the user clicks "Delete" on a product.
+       Shows the product name and asks "Are you sure?".
+       Two buttons:
+         "Cancel"  → closeDeleteModal() → nothing is deleted
+         "Delete"  → confirmDelete()   → sends DELETE /api/products/:id
+  -->
+  <div class="modal-overlay" id="deleteModal" onclick="closeDeleteModalOnOverlay(event)">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title">Confirm Delete</h2>
+        <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!--
+          #deleteProductName is filled by products.js with the product's name:
+          document.getElementById("deleteProductName").textContent = productName;
+        -->
+        <p>Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+        <p class="text-muted">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <!--
+          confirmDelete() sends DELETE /api/products/:id to the Flask backend.
+          Flask runs: DELETE FROM products WHERE id = ?
+        -->
+        <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div><!-- /.modal-overlay (delete) -->
+
+
+  <!--
+    Load the JavaScript file at the bottom of the page.
+    This ensures all HTML elements are available before products.js
+    tries to find them with document.getElementById().
+  -->
+  <script src="js/products.js"></script>
+
+</body>
+</html>
